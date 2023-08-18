@@ -4,59 +4,7 @@
 
 #include <sstream>
 
-
-
 Window::WindowClass Window::WindowClass::windowClass;
-
-Window::Exception::Exception(int line, const char* file, HRESULT errorCode) :
-	VoltageException(line, file),
-	errorCode(errorCode)
-{
-
-}
-
-const char* Window::Exception::what() const
-{
-	std::ostringstream oss;
-	oss << GetType() << std::endl
-		<< "[Error code] " << GetErrorCode() << std::endl
-		<< "[Description] " << GetErrorString() << std::endl
-		<< GetOriginString();
-	whatBuffer = oss.str();
-	return whatBuffer.c_str();
-}
-
-const char* Window::Exception::GetType() const 
-{
-	return "Voltage Window Exception";
-}
-
-std::string Window::Exception::TranslateErrorCode(HRESULT errorCode) 
-{
-	char* messageBuffer = nullptr;
-	DWORD msgLength = FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		nullptr, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		reinterpret_cast<LPSTR>(&messageBuffer), 0, nullptr
-	);
-	if (msgLength == 0) return "Unindentified error code";
-	else 
-	{
-		std::string errorString = messageBuffer;
-		LocalFree(messageBuffer);
-		return errorString;
-	}
-}
-
-HRESULT Window::Exception::GetErrorCode() const
-{
-	return errorCode;
-}
-
-std::string Window::Exception::GetErrorString() const 
-{
-	return TranslateErrorCode(errorCode);
-}
 
 Window::WindowClass::WindowClass() :
 	instance(GetModuleHandle(0))
@@ -147,14 +95,15 @@ std::optional<int> Window::ProcessMessages()
 	return {};
 }
 
-void Window::SetTitle(const char* title)
+void Window::SetTitle(const std::string& title)
 {
-	if (SetWindowText(handle, title) == 0)
+	if (SetWindowText(handle, title.c_str()) == 0)
 		throw VWND_LAST_EXCEPT();
 }
 
 Graphics& Window::Gfx()
 {
+	if (!graphics) throw VWND_NOGFX_EXCEPT();
 	return *graphics;
 }
 
@@ -283,4 +232,59 @@ bool Window::HandleMouseCapture(int x, int y)
 	}
 
 	return true;
+}
+
+Window::HrException::HrException(int line, const char* file, HRESULT errorCode) :
+	Exception(line, file),
+	errorCode(errorCode)
+{
+
+}
+
+const char* Window::HrException::what() const
+{
+	std::ostringstream oss;
+	oss << GetType() << std::endl
+		<< "[Error code] " << GetErrorCode() << std::endl
+		<< "[Description] " << GetErrorString() << std::endl
+		<< GetOriginString();
+	whatBuffer = oss.str();
+	return whatBuffer.c_str();
+}
+
+const char* Window::HrException::GetType() const
+{
+	return "Voltage Window Exception";
+}
+
+std::string Window::Exception::TranslateErrorCode(HRESULT errorCode)
+{
+	char* messageBuffer = nullptr;
+	DWORD msgLength = FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		nullptr, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		reinterpret_cast<LPSTR>(&messageBuffer), 0, nullptr
+	);
+	if (msgLength == 0) return "Unindentified error code";
+	else
+	{
+		std::string errorString = messageBuffer;
+		LocalFree(messageBuffer);
+		return errorString;
+	}
+}
+
+HRESULT Window::HrException::GetErrorCode() const
+{
+	return errorCode;
+}
+
+std::string Window::HrException::GetErrorString() const
+{
+	return TranslateErrorCode(errorCode);
+}
+
+const char* Window::NoGfxException::GetType() const
+{
+	return "Voltage no graphics exception";
 }

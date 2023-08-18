@@ -7,20 +7,39 @@
 #include <optional>
 #include <memory>
 
+#define VWND_EXCEPT(code) Window::HrException(__LINE__, __FILE__, code)
+#define VWND_LAST_EXCEPT() Window::HrException(__LINE__, __FILE__, GetLastError())
+#define VWND_NOGFX_EXCEPT() Window::NoGfxException(__LINE__, __FILE__)
+
 class Window
 {
 public:
-	class Exception : public VoltageException {
+	class Exception : public VoltageException
+	{
+		using VoltageException::VoltageException;
+
+	public:
+		static std::string TranslateErrorCode(HRESULT errorCode);
+	};
+
+	class HrException : public Exception 
+	{
 	private:
 		const HRESULT errorCode;
 
 	public:
-		Exception(int line, const char* file, HRESULT errorCode);
+		HrException(int line, const char* file, HRESULT errorCode);
 		virtual const char* what() const override;
 		virtual const char* GetType() const override;
 		HRESULT GetErrorCode() const;
 		std::string GetErrorString() const;
-		static std::string TranslateErrorCode(HRESULT errorCode);
+	};
+
+	class NoGfxException : public Exception
+	{
+	public:
+		using Exception::Exception;
+		const char* GetType() const override;
 	};
 
 private:
@@ -54,7 +73,7 @@ public:
 
 	static std::optional<int> ProcessMessages();
 
-	void SetTitle(const char* title);
+	void SetTitle(const std::string& title);
 
 	Graphics& Gfx();
 
@@ -68,7 +87,4 @@ public:
 	Keyboard keyboard;
 	Mouse mouse;
 };
-
-#define VWND_EXCEPT(code) Window::Exception(__LINE__, __FILE__, code)
-#define VWND_LAST_EXCEPT() Window::Exception(__LINE__, __FILE__, GetLastError())
 
