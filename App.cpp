@@ -21,8 +21,7 @@ int App::Start()
 
 void App::UpdateFrame()
 {
-	const float elapsedTime = timer.Peek();
-	std::ostringstream oss;
-	oss << "Time elapsed: " << std::setprecision(2) << std::fixed << elapsedTime << " seconds";
-	window.SetTitle(oss.str().c_str());
+	const float c = sin(timer.Peek()) / 2.0f + 0.5f;
+	window.Gfx().ClearBuffer(0.0f, c, c);
+	window.Gfx().PresentFrame();
 }

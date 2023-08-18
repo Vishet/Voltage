@@ -1,7 +1,10 @@
 #include "Window.h"
+#include "resource.h"
+#include "Graphics.h"
 
 #include <sstream>
-#include "resource.h"
+
+
 
 Window::WindowClass Window::WindowClass::windowClass;
 
@@ -120,6 +123,8 @@ Window::Window(int width, int height, const char* title) :
 	if (handle == nullptr)
 		throw VWND_LAST_EXCEPT();
 
+	graphics = std::make_unique<Graphics>(handle);
+
 	ShowWindow(handle, SW_SHOWDEFAULT);
 }
 
@@ -131,8 +136,8 @@ Window::~Window()
 std::optional<int> Window::ProcessMessages()
 {
 	MSG message;
-	while (PeekMessage(&message, nullptr, 0, 0, PM_REMOVE)) {
-		if (message.message == WM_QUIT) return message.wParam;
+	while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) {
+		if (message.message == WM_QUIT) return static_cast<int>(message.wParam);
 
 		TranslateMessage(&message);
 		DispatchMessage(&message);
@@ -146,6 +151,11 @@ void Window::SetTitle(const char* title)
 {
 	if (SetWindowText(handle, title) == 0)
 		throw VWND_LAST_EXCEPT();
+}
+
+Graphics& Window::Gfx()
+{
+	return *graphics;
 }
 
 LRESULT WINAPI Window::HandleMessageSetup(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
@@ -218,7 +228,7 @@ LRESULT Window::HandleMessage(HWND windowHandle, UINT message, WPARAM wParam, LP
 		mouse.OnRMBPressed();
 		return 0;
 	}
-
+	
 	case WM_LBUTTONUP:
 	{
 		const POINTS pt = MAKEPOINTS(lParam);
@@ -248,9 +258,10 @@ LRESULT Window::HandleMessage(HWND windowHandle, UINT message, WPARAM wParam, LP
 	case WM_KILLFOCUS:
 		keyboard.ClearState();
 		return 0;
-	}
 
-	return DefWindowProc(windowHandle, message, wParam, lParam);
+	default:
+		return DefWindowProc(windowHandle, message, wParam, lParam);
+	}
 }
 
 bool Window::HandleMouseCapture(int x, int y)

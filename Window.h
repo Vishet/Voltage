@@ -3,7 +3,9 @@
 #include "VoltageException.h"
 #include "Keyboard.h"
 #include "Mouse.h"
+#include "Graphics.h"
 #include <optional>
+#include <memory>
 
 class Window
 {
@@ -41,6 +43,7 @@ private:
 	int width;
 	int height;
 	HWND handle;
+	std::unique_ptr<Graphics> graphics;
 
 public:
 	Window(int width, int height, const char* title);
@@ -52,6 +55,8 @@ public:
 	static std::optional<int> ProcessMessages();
 
 	void SetTitle(const char* title);
+
+	Graphics& Gfx();
 
 private:
 	static LRESULT WINAPI HandleMessageSetup(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
