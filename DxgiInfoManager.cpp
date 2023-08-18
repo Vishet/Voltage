@@ -21,12 +21,7 @@ DxgiInfoManager::DxgiInfoManager()
 	if (DxgiGetDebugInterface == nullptr) throw VWND_LAST_EXCEPT();
 
 	HRESULT hr;
-	GFX_THROW_NOINFO(DxgiGetDebugInterface(__uuidof(IDXGIInfoQueue), reinterpret_cast<void**>(&dxgiInfoQueue)));
-}
-
-DxgiInfoManager::~DxgiInfoManager()
-{
-	if (dxgiInfoQueue != nullptr) dxgiInfoQueue->Release();
+	GFX_THROW_NOINFO(DxgiGetDebugInterface(__uuidof(IDXGIInfoQueue), &dxgiInfoQueue));
 }
 
 void DxgiInfoManager::Set()

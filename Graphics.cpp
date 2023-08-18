@@ -17,6 +17,8 @@
 #define GFX_DEVICE_REMOVED_EXCEPT(hr) Graphics::DeviceRemovedException(__LINE__, __FILE__, (hr))
 #endif // !NDEBUG
 
+namespace wrl = Microsoft::WRL;
+
 Graphics::Graphics(HWND outputWindow)
 {
 	DXGI_SWAP_CHAIN_DESC sd = {};
@@ -53,22 +55,9 @@ Graphics::Graphics(HWND outputWindow)
 		&context
 	));
 
-	ID3D11Resource* backBuffer = nullptr;
-	GFX_THROW_INFO( swap->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(&backBuffer)));
-	GFX_THROW_INFO( device->CreateRenderTargetView(backBuffer, nullptr, &targetView));
-	backBuffer->Release();
-}
-
-Graphics::~Graphics()
-{
-	if (targetView != nullptr)
-		targetView->Release();
-	if (context != nullptr)
-		context->Release();
-	if (swap != nullptr)
-		swap->Release();
-	if (device != nullptr)
-		device->Release();
+	wrl::ComPtr<ID3D11Resource> backBuffer;
+	GFX_THROW_INFO( swap->GetBuffer(0, __uuidof(ID3D11Resource), &backBuffer));
+	GFX_THROW_INFO( device->CreateRenderTargetView(backBuffer.Get(), nullptr, &targetView));
 }
 
 void Graphics::PresentFrame()
@@ -90,7 +79,7 @@ void Graphics::PresentFrame()
 void Graphics::ClearBuffer(float red, float green, float blue)
 {
 	const FLOAT colors[] = { red, green, blue, 1.0f };
-	context->ClearRenderTargetView(targetView, colors);
+	context->ClearRenderTargetView(targetView.Get(), colors);
 }
 
 Graphics::HrException::HrException(int line, const char* file, HRESULT hr, std::vector<std::string> infoMessages) :

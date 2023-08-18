@@ -3,6 +3,7 @@
 #include "VoltageException.h"
 #include "DxgiInfoManager.h"
 #include <d3d11.h>
+#include <wrl.h>
 
 class Graphics
 {
@@ -41,10 +42,10 @@ public:
 	};
 
 private:
-	ID3D11Device* device = nullptr;
-	IDXGISwapChain* swap = nullptr;
-	ID3D11DeviceContext* context = nullptr;
-	ID3D11RenderTargetView* targetView = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11Device> device;
+	Microsoft::WRL::ComPtr <IDXGISwapChain> swap;
+	Microsoft::WRL::ComPtr <ID3D11DeviceContext> context;
+	Microsoft::WRL::ComPtr <ID3D11RenderTargetView> targetView;
 
 #ifndef NDEBUG
 	DxgiInfoManager infoManager;
@@ -55,8 +56,7 @@ public:
 	Graphics(HWND outputWindow);
 	Graphics(const Graphics&) = delete;
 	Graphics& operator=(const Graphics&) = delete;
-
-	~Graphics();
+	~Graphics() = default;
 
 	void PresentFrame();
 
