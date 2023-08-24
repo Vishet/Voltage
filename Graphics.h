@@ -41,6 +41,18 @@ public:
 		const char* GetType() const override;
 	};
 
+	class InfoException : public Exception
+	{
+	private:
+		std::string info;
+
+	public:
+		InfoException(int line, const char* file, const std::vector<std::string>& infos);
+		const char* what() const override;
+		const char* GetType() const override;
+		const std::string& GetErrorInfo() const;
+	};
+
 private:
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr <IDXGISwapChain> swap;
@@ -61,5 +73,7 @@ public:
 	void PresentFrame();
 
 	void ClearBuffer(float red, float green, float blue);
+
+	void DrawTestTriangle();
 };
 
